@@ -17,6 +17,8 @@
 import prefetch from './prefetch.mjs';
 import requestIdleCallback from './request-idle-callback.mjs';
 
+// fetch白名单 在白名单内的网页才会fetch 
+// 白名单在初始化时 querySelectorAll 筛选过滤
 const toPrefetch = new Set();
 
 const observer = new IntersectionObserver(entries => {
@@ -74,20 +76,26 @@ function isIgnored(node, filter) {
 export default function (options) {
   if (!options) options = {};
 
-  observer.priority = options.priority || false;
+  // 是否优先使用 fetch
+  observer.priority = options.priority || false; 
 
+  // 域名白名单 默认当前域下
   const allowed = options.origins || [location.hostname];
+  // 忽略特殊路径
   const ignores = options.ignores || [];
 
-  const timeout = options.timeout || 2e3;
+  const timeout = options.timeout || 2e3; // 2s 
+  // 多久后开始加载资源 在支持`requestIdleCallback`的环境使用requestIdleCallback，否则使用setTimeout
   const timeoutFn = options.timeoutFn || requestIdleCallback;
 
   timeoutFn(() => {
+    // urls 和 el 互斥
     // If URLs are given, prefetch them.
     if (options.urls) {
-      options.urls.forEach(prefetcher);
+      options.urls.forEach(url => prefetcher(url));
     } else {
       // If not, find all links and use IntersectionObserver.
+      // 筛选所有的超链接并监听
       Array.from((options.el || document).querySelectorAll('a'), link => {
         observer.observe(link);
         // If the anchor matches a permitted origin

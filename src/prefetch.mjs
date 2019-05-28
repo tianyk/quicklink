@@ -16,6 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
 **/
+// 加载情况统计 url: prefetched 
 const preFetched = {};
 
 /**
@@ -30,6 +31,7 @@ function support(feature) {
 }
 
 /**
+ * prefetch link 方式预加载 safari 不支持
  * Fetches a given URL using `<link rel=prefetch>`
  * @param {string} url - the URL to fetch
  * @return {Object} a Promise
@@ -48,6 +50,7 @@ function linkPrefetchStrategy(url) {
 };
 
 /**
+ * ajax 方式预加载
  * Fetches a given URL using XMLHttpRequest
  * @param {string} url - the URL to fetch
  * @return {Object} a Promise
@@ -56,7 +59,7 @@ function xhrPrefetchStrategy(url) {
   return new Promise((resolve, reject) => {
     const req = new XMLHttpRequest();
 
-    req.open(`GET`, url, req.withCredentials=true);
+    req.open(`GET`, url, req.withCredentials = true);
 
     req.onload = () => {
       (req.status === 200) ? resolve() : reject();
@@ -82,7 +85,7 @@ function highPriFetchStrategy(url) {
   // and medium-priority in Safari.
   return self.fetch == null
     ? xhrPrefetchStrategy(url)
-    : fetch(url, {credentials: `include`});
+    : fetch(url, { credentials: `include` });
 }
 
 const supportedPrefetchStrategy = support('prefetch')
@@ -101,15 +104,17 @@ function prefetcher(url, isPriority, conn) {
     return;
   }
 
+  // 差网络不加载
   if (conn = navigator.connection) {
     // Don't prefetch if the user is on 2G. or if Save-Data is enabled..
     if ((conn.effectiveType || '').includes('2g') || conn.saveData) return;
   }
 
   // Wanna do something on catch()?
-  return (isPriority ? highPriFetchStrategy : supportedPrefetchStrategy)(url).then(() => {
-    preFetched[url] = true;
-  });
+  return (isPriority ? highPriFetchStrategy : supportedPrefetchStrategy)(url)
+    .then(() => {
+      preFetched[url] = true;
+    });
 };
 
 export default prefetcher;
