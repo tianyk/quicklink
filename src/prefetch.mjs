@@ -59,7 +59,7 @@ function xhrPrefetchStrategy(url) {
   return new Promise((resolve, reject) => {
     const req = new XMLHttpRequest();
 
-    req.open(`GET`, url, req.withCredentials = true);
+    req.open(`GET`, url, req.withCredentials = false);
 
     req.onload = () => {
       (req.status === 200) ? resolve() : reject();
@@ -85,7 +85,7 @@ function highPriFetchStrategy(url) {
   // and medium-priority in Safari.
   return self.fetch == null
     ? xhrPrefetchStrategy(url)
-    : fetch(url, { credentials: `include` });
+    : fetch(url, { credentials: `omit` });
 }
 
 const supportedPrefetchStrategy = support('prefetch')
@@ -114,7 +114,8 @@ function prefetcher(url, isPriority, conn) {
   return (isPriority ? highPriFetchStrategy : supportedPrefetchStrategy)(url)
     .then(() => {
       preFetched[url] = true;
-    });
+    })
+    .catch((ignored) => { });
 };
 
 export default prefetcher;
