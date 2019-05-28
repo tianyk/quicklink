@@ -58,8 +58,8 @@ function linkPrefetchStrategy(url) {
 function xhrPrefetchStrategy(url) {
   return new Promise((resolve, reject) => {
     const req = new XMLHttpRequest();
-
-    req.open(`GET`, url, req.withCredentials = false);
+    req.open(`GET`, url, true);
+    req.withCredentials = false;
 
     req.onload = () => {
       (req.status === 200) ? resolve() : reject();
